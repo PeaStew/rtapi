@@ -3,17 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gobuffalo/packr/v2"
-	"github.com/gosuri/uiprogress"
-	"github.com/jung-kurt/gofpdf"
-	"github.com/tsenart/vegeta/v12/lib"
-	"github.com/urfave/cli/v2"
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
-	"gonum.org/v1/plot/vg/draw"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -22,6 +11,18 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gobuffalo/packr/v2"
+	"github.com/gosuri/uiprogress"
+	"github.com/jung-kurt/gofpdf"
+	vegeta "github.com/tsenart/vegeta/v12/lib"
+	"github.com/urfave/cli/v2"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
+	"gonum.org/v1/plot/vg/draw"
+	"gopkg.in/yaml.v3"
 )
 
 type endpointDetails struct {
@@ -66,6 +67,11 @@ func main() {
 			Name:    "print",
 			Aliases: []string{"p"},
 			Usage:   "output technical query results to terminal",
+		},
+		&cli.BoolFlag{
+			Name:    "json",
+			Aliases: []string{"j"},
+			Usage:   "output technical query results as json to terminal",
 		},
 	}
 
@@ -115,6 +121,10 @@ func main() {
 			// Create a PDF with some informative text and the graph we've just created
 			if c.IsSet("output") {
 				createPDF(endpointList, c.String("output"))
+			}
+
+			if c.IsSet("json") {
+				printJson(endpointList)
 			}
 			return nil
 		},
@@ -270,6 +280,12 @@ func printText(endpoints []endpointDetails) {
 	os.Stdout.Write([]byte(text[3]))
 }
 
+func printJson(endpoints []endpointDetails) {
+	jsonInfo, _ := json.Marshal(endpoints)
+	os.Stdout.Write(jsonInfo)
+
+}
+
 func createPDF(endpoints []endpointDetails, output string) {
 	text := [...]string{
 		"<center><b>NGINX — Real-Time API Latency Report</b></center>",
@@ -396,7 +412,7 @@ func createPDF(endpoints []endpointDetails, output string) {
 }
 
 func showProgressBar(sum int) {
-	os.Stdout.Write([]byte("rtapi will take " + strconv.Itoa(sum)  + " seconds to run\n"))
+	os.Stdout.Write([]byte("rtapi will take " + strconv.Itoa(sum) + " seconds to run\n"))
 	uiprogress.Start()
 	progressBar := uiprogress.AddBar(sum * 10).AppendCompleted().PrependElapsed()
 	for progressBar.Incr() {
@@ -495,7 +511,7 @@ func createGraph(endpoints []endpointDetails) *bytes.Buffer {
 					},
 				},
 				[]string{
-					strconv.FormatFloat(float64(endpoints[i].metrics.Latencies.P99) / 1000000, 'f', 3, 64) + "ms @ 99%",
+					strconv.FormatFloat(float64(endpoints[i].metrics.Latencies.P99)/1000000, 'f', 3, 64) + "ms @ 99%",
 				},
 			},
 		)
