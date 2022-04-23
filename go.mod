@@ -1,4 +1,4 @@
-module github.com/nginxinc/rtapi
+module github.com/nginx/rtapi
 
 go 1.13
 
