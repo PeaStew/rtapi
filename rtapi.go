@@ -28,7 +28,7 @@ import (
 type endpointDetails struct {
 	Target  endpointTarget `json:"target" yaml:"target"`
 	Query   endpointQuery  `json:"query_parameters" yaml:"query_parameters"`
-	metrics vegeta.Metrics
+	Metrics vegeta.Metrics `json:"metrics" yaml:"metrics"`
 }
 
 type endpointTarget struct {
@@ -112,7 +112,7 @@ func main() {
 
 			// Query each endpoint specified
 			for i := range endpointList {
-				endpointList[i].metrics = queryAPI(endpointList[i])
+				endpointList[i].Metrics = queryAPI(endpointList[i])
 			}
 			// Print text report
 			if c.Bool("print") {
@@ -270,7 +270,7 @@ func printText(endpoints []endpointDetails) {
 	os.Stdout.Write([]byte(text[1]))
 	os.Stdout.Write([]byte(text[2]))
 	for i := range endpoints {
-		reporter := vegeta.NewTextReporter(&endpoints[i].metrics)
+		reporter := vegeta.NewTextReporter(&endpoints[i].Metrics)
 		os.Stdout.Write([]byte("------------------------------------\n"))
 		os.Stdout.Write([]byte("API Endpoint: " + endpoints[i].Target.URL + "\n"))
 		os.Stdout.Write([]byte("------------------------------------\n"))
@@ -425,7 +425,7 @@ func createGraph(endpoints []endpointDetails) *bytes.Buffer {
 	var stringArray [][]string
 	var points []plotter.XYs
 	for i := range endpoints {
-		reporter := vegeta.NewHDRHistogramPlotReporter(&endpoints[i].metrics)
+		reporter := vegeta.NewHDRHistogramPlotReporter(&endpoints[i].Metrics)
 		buffer := new(bytes.Buffer)
 		reporter.Report(buffer)
 		bufferString := buffer.String()
@@ -483,11 +483,11 @@ func createGraph(endpoints []endpointDetails) *bytes.Buffer {
 			plotter.XYs{
 				plotter.XY{
 					X: p.X.Min,
-					Y: float64(endpoints[i].metrics.Latencies.P99) / 1000000,
+					Y: float64(endpoints[i].Metrics.Latencies.P99) / 1000000,
 				},
 				plotter.XY{
 					X: 100,
-					Y: float64(endpoints[i].metrics.Latencies.P99) / 1000000,
+					Y: float64(endpoints[i].Metrics.Latencies.P99) / 1000000,
 				},
 			},
 		)
@@ -507,11 +507,11 @@ func createGraph(endpoints []endpointDetails) *bytes.Buffer {
 				plotter.XYs{
 					plotter.XY{
 						X: 100,
-						Y: float64(float64(endpoints[i].metrics.Latencies.P99) / 1000000),
+						Y: float64(float64(endpoints[i].Metrics.Latencies.P99) / 1000000),
 					},
 				},
 				[]string{
-					strconv.FormatFloat(float64(endpoints[i].metrics.Latencies.P99)/1000000, 'f', 3, 64) + "ms @ 99%",
+					strconv.FormatFloat(float64(endpoints[i].Metrics.Latencies.P99)/1000000, 'f', 3, 64) + "ms @ 99%",
 				},
 			},
 		)
