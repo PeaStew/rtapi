@@ -329,8 +329,15 @@ func sendJsonToSplunk(endpoints []endpointDetails, splunkAuthString string) {
 			panic(err)
 		}
 		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		// Log the request body
+		bodyString := string(body)
+		log.Print(bodyString)
+		if err != nil {
+			log.Printf("Reading body failed: %s", err)
+			return
+		}
 	}
-
 }
 
 func printJson(endpoints []endpointDetails) {
