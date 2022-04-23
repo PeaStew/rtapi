@@ -319,7 +319,7 @@ func sendJsonToSplunk(endpoints []endpointDetails, splunkAuthString string) {
 		jsonInfo, _ := json.Marshal(splunkMessage)
 		var jsonStr = []byte(jsonInfo)
 
-		req, err := http.NewRequest("GET", "https://splunk01.ankr.com/hec/services/collector/event", bytes.NewBuffer(jsonStr))
+		req, err := http.NewRequest("POST", "https://splunk01.ankr.com/hec/services/collector/event", bytes.NewBuffer(jsonStr))
 		req.Header.Add("Authorization", "Splunk "+splunkAuthString)
 		req.Header.Set("Content-Type", "application/json")
 
