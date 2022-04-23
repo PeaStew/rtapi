@@ -26,6 +26,7 @@ GLOBAL OPTIONS:
     --output value, -o value  output query results in easy to grasp PDF report
     --print, -p               output technical query results to terminal (default: false)
     --json, -j                output technical query results as json to terminal (default: false)
+    --quiet, -q               don't show progress bar (default: false)
     --help, -h                show help (default: false)
     --version, -v             print the version (default: false)
 ```

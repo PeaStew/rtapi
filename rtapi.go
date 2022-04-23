@@ -46,6 +46,13 @@ type endpointQuery struct {
 	RequestRate int    `json:"request_rate" yaml:"request_rate"`
 }
 
+type splunkEvent struct {
+	Time   int64           `json:"time" yaml:"time"`
+	Host   string          `json:"host" yaml:"host"`
+	Source string          `json:"source" yaml:"source"`
+	Event  endpointDetails `json:"event" yaml:"event"`
+}
+
 func main() {
 	flags := []cli.Flag{
 		&cli.StringFlag{
@@ -73,6 +80,16 @@ func main() {
 			Aliases: []string{"j"},
 			Usage:   "output technical query results as json to terminal",
 		},
+		&cli.BoolFlag{
+			Name:    "splunk",
+			Aliases: []string{"s"},
+			Usage:   "send json output to splunk with specified authorisation key",
+		},
+		&cli.BoolFlag{
+			Name:    "quiet",
+			Aliases: []string{"q"},
+			Usage:   "don't show progress bar",
+		},
 	}
 
 	app := &cli.App{
@@ -83,6 +100,7 @@ func main() {
 		Action: func(c *cli.Context) error {
 			// Check if there's any input data
 			var endpointList []endpointDetails
+			var splunkAuthString = string("")
 			if !c.IsSet("file") && !c.IsSet("data") {
 				log.Fatal("No data found")
 			} else if c.IsSet("file") && c.IsSet("data") {
@@ -97,6 +115,8 @@ func main() {
 				}
 			} else if c.IsSet("data") {
 				endpointList = parseJSONString(c.String("data"))
+			} else if c.IsSet("splunk") {
+				splunkAuthString = c.String("splunk")
 			}
 
 			// Show progress bar
@@ -108,7 +128,10 @@ func main() {
 				}
 				sum += duration.Seconds()
 			}
-			go showProgressBar(int(sum))
+
+			if !c.IsSet("quiet") {
+				go showProgressBar(int(sum))
+			}
 
 			// Query each endpoint specified
 			for i := range endpointList {
@@ -125,6 +148,10 @@ func main() {
 
 			if c.IsSet("json") {
 				printJson(endpointList)
+			}
+
+			if c.IsSet("splunk") {
+				sendJsonToSplunk(endpointList, splunkAuthString)
 			}
 			return nil
 		},
@@ -278,6 +305,32 @@ func printText(endpoints []endpointDetails) {
 		os.Stdout.Write([]byte("------------------------------------\n\n"))
 	}
 	os.Stdout.Write([]byte(text[3]))
+}
+
+func sendJsonToSplunk(endpoints []endpointDetails, splunkAuthString string) {
+	for i := range endpoints {
+		now := time.Now()
+		name, err := os.Hostname()
+		if err != nil {
+			panic(err)
+		}
+		var splunkMessage = splunkEvent{now.Unix(), name, "rtapi by PeaStew", endpoints[i]}
+
+		jsonInfo, _ := json.Marshal(splunkMessage)
+		var jsonStr = []byte(jsonInfo)
+
+		req, err := http.NewRequest("GET", "https://splunk01.ankr.com/hec/services/collector/event", bytes.NewBuffer(jsonStr))
+		req.Header.Add("Authorization", "Splunk "+splunkAuthString)
+		req.Header.Set("Content-Type", "application/json")
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+	}
+
 }
 
 func printJson(endpoints []endpointDetails) {
