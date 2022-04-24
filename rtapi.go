@@ -184,7 +184,7 @@ func parseEndpointsJSON(file string) []endpointDetails {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf(string(byteValue))
+
 	var temp []endpointDetails
 	err = json.Unmarshal(byteValue, &temp)
 	if err != nil {
@@ -223,6 +223,7 @@ func parseSplunkSettingsJSON(file string) splunkSettings {
 	if err != nil {
 		panic(err)
 	}
+	log.Printf(string(byteValue))
 	var temp splunkSettings
 	err = json.Unmarshal(byteValue, &temp)
 	if err != nil {
