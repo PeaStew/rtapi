@@ -110,7 +110,7 @@ func main() {
 				log.Fatal("No data found")
 			} else if c.IsSet("file") && c.IsSet("data") {
 				log.Fatal("Please only use either file or data as your input source")
-			} else if !c.IsSet("output") && !c.Bool("print") && !c.Bool("json") && !c.Bool("splunk") {
+			} else if !c.IsSet("output") && !c.Bool("print") && !c.Bool("json") && c.String("splunk") == "" {
 				log.Fatal("You did not specify any type of output")
 			} else if c.IsSet("file") {
 				if filepath.Ext(c.String("file")) == ".json" {
