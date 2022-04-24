@@ -46,6 +46,11 @@ type endpointQuery struct {
 	RequestRate int    `json:"request_rate" yaml:"request_rate"`
 }
 
+type splunkSettings struct {
+	Url     string `json:"url" yaml:"url"`
+	Authkey string `json:"authkey" yaml:"authkey"`
+}
+
 type splunkEvent struct {
 	Time   int64           `json:"time" yaml:"time"`
 	Host   string          `json:"host" yaml:"host"`
@@ -100,6 +105,7 @@ func main() {
 		Action: func(c *cli.Context) error {
 			// Check if there's any input data
 			var endpointList []endpointDetails
+			var splunkSettings splunkSettings
 			if !c.IsSet("file") && !c.IsSet("data") {
 				log.Fatal("No data found")
 			} else if c.IsSet("file") && c.IsSet("data") {
@@ -108,12 +114,18 @@ func main() {
 				log.Fatal("You did not specify any type of output")
 			} else if c.IsSet("file") {
 				if filepath.Ext(c.String("file")) == ".json" {
-					endpointList = parseJSON(c.String("file"))
+					endpointList = parseEndpointsJSON(c.String("file"))
 				} else if filepath.Ext(c.String("file")) == ".yml" || filepath.Ext(c.String("file")) == ".yaml" {
-					endpointList = parseYAML(c.String("file"))
+					endpointList = parseEndpointsYAML(c.String("file"))
 				}
 			} else if c.IsSet("data") {
 				endpointList = parseJSONString(c.String("data"))
+			} else if c.IsSet("splunk") {
+				if filepath.Ext(c.String("splunk")) == ".json" {
+					splunkSettings = parseSplunkSettingsJSON(c.String("splunk"))
+				} else if filepath.Ext(c.String("splunk")) == ".yml" || filepath.Ext(c.String("splunk")) == ".yaml" {
+					splunkSettings = parseSplunkSettingsYAML(c.String("splunk"))
+				}
 			}
 
 			// Show progress bar
@@ -148,7 +160,7 @@ func main() {
 			}
 
 			if c.IsSet("splunk") {
-				sendJsonToSplunk(endpointList, c.String("splunk"))
+				sendJsonToSplunk(endpointList, splunkSettings)
 			}
 			return nil
 		},
@@ -159,7 +171,7 @@ func main() {
 	}
 }
 
-func parseJSON(file string) []endpointDetails {
+func parseEndpointsJSON(file string) []endpointDetails {
 	jsonFile, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
@@ -178,7 +190,7 @@ func parseJSON(file string) []endpointDetails {
 	return temp
 }
 
-func parseYAML(file string) []endpointDetails {
+func parseEndpointsYAML(file string) []endpointDetails {
 	yamlFile, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
@@ -190,6 +202,44 @@ func parseYAML(file string) []endpointDetails {
 		panic(err)
 	}
 	var temp []endpointDetails
+	err = yaml.Unmarshal(byteValue, &temp)
+	if err != nil {
+		panic(err)
+	}
+	return temp
+}
+
+func parseSplunkSettingsJSON(file string) splunkSettings {
+	jsonFile, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer jsonFile.Close()
+
+	byteValue, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		panic(err)
+	}
+	var temp splunkSettings
+	err = json.Unmarshal(byteValue, &temp)
+	if err != nil {
+		panic(err)
+	}
+	return temp
+}
+
+func parseSplunkSettingsYAML(file string) splunkSettings {
+	yamlFile, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer yamlFile.Close()
+
+	byteValue, err := ioutil.ReadAll(yamlFile)
+	if err != nil {
+		panic(err)
+	}
+	var temp splunkSettings
 	err = yaml.Unmarshal(byteValue, &temp)
 	if err != nil {
 		panic(err)
@@ -304,7 +354,7 @@ func printText(endpoints []endpointDetails) {
 	os.Stdout.Write([]byte(text[3]))
 }
 
-func sendJsonToSplunk(endpoints []endpointDetails, splunkAuthString string) {
+func sendJsonToSplunk(endpoints []endpointDetails, splunkSettings splunkSettings) {
 	for i := range endpoints {
 		now := time.Now()
 		name, err := os.Hostname()
@@ -315,10 +365,12 @@ func sendJsonToSplunk(endpoints []endpointDetails, splunkAuthString string) {
 
 		jsonInfo, _ := json.Marshal(splunkMessage)
 		var jsonStr = []byte(jsonInfo)
+		log.Print(splunkSettings.Url)
+		log.Print(splunkSettings.Authkey)
 
-		req, err := http.NewRequest("POST", "https://splunk01.ankr.com/hec/services/collector/event", bytes.NewBuffer(jsonStr))
-		log.Print(splunkAuthString)
-		req.Header.Add("Authorization", "Splunk "+splunkAuthString)
+		req, err := http.NewRequest("POST", splunkSettings.Url, bytes.NewBuffer(jsonStr))
+
+		req.Header.Add("Authorization", splunkSettings.Authkey)
 		req.Header.Set("Content-Type", "application/json")
 
 		client := &http.Client{}
