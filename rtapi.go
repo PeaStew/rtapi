@@ -224,7 +224,7 @@ func parseSplunkSettingsJSON(file string) splunkSettings {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf(string(byteValue))
+	//log.Printf(string(byteValue))
 	var temp splunkSettings
 	err = json.Unmarshal(byteValue, &temp)
 	if err != nil {
@@ -370,8 +370,8 @@ func sendJsonToSplunk(endpoints []endpointDetails, splunkSettings splunkSettings
 
 		jsonInfo, _ := json.Marshal(splunkMessage)
 		var jsonStr = []byte(jsonInfo)
-		log.Print(splunkSettings.Url)
-		log.Print(splunkSettings.Authkey)
+		//log.Print(splunkSettings.Url)
+		//log.Print(splunkSettings.Authkey)
 
 		req, err := http.NewRequest("GET", splunkSettings.Url, bytes.NewBuffer(jsonStr))
 

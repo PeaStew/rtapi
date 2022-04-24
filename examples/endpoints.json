@@ -1,0 +1,21 @@
+[
+    {
+      "target": {
+        "url": "https://rpc.ankr.com/eth",
+        "method": "GET",
+        "body": "[{\"method\":\"eth_chainId\",\"id\":125,\"jsonrpc\":\"2.0\"},{\"method\":\"eth_blockNumber\",\"id\":127,\"jsonrpc\":\"2.0\"}]",
+        "header": {
+          "Content-Type": [
+            "application/json"
+          ]
+        }
+      },
+      "query_parameters": {
+        "threads": 2,
+        "max_threads": 2,
+        "connections": 10,
+        "duration": "10s",
+        "request_rate": 500
+      }
+    }
+  ]  
