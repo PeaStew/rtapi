@@ -120,7 +120,9 @@ func main() {
 				}
 			} else if c.IsSet("data") {
 				endpointList = parseJSONString(c.String("data"))
-			} else if c.IsSet("splunk") {
+			}
+
+			if c.IsSet("splunk") {
 				if filepath.Ext(c.String("splunk")) == ".json" {
 					splunkSettings = parseSplunkSettingsJSON(c.String("splunk"))
 				} else if filepath.Ext(c.String("splunk")) == ".yml" || filepath.Ext(c.String("splunk")) == ".yaml" {
