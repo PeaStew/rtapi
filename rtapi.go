@@ -123,6 +123,7 @@ func main() {
 			}
 
 			if c.IsSet("splunk") {
+				log.Printf(c.String("splunk"))
 				if filepath.Ext(c.String("splunk")) == ".json" {
 					splunkSettings = parseSplunkSettingsJSON(c.String("splunk"))
 				} else if filepath.Ext(c.String("splunk")) == ".yml" || filepath.Ext(c.String("splunk")) == ".yaml" {
