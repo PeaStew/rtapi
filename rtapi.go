@@ -100,7 +100,6 @@ func main() {
 		Action: func(c *cli.Context) error {
 			// Check if there's any input data
 			var endpointList []endpointDetails
-			var splunkAuthString = string("")
 			if !c.IsSet("file") && !c.IsSet("data") {
 				log.Fatal("No data found")
 			} else if c.IsSet("file") && c.IsSet("data") {
@@ -115,8 +114,6 @@ func main() {
 				}
 			} else if c.IsSet("data") {
 				endpointList = parseJSONString(c.String("data"))
-			} else if c.IsSet("splunk") {
-				splunkAuthString = c.String("splunk")
 			}
 
 			// Show progress bar
@@ -151,7 +148,7 @@ func main() {
 			}
 
 			if c.IsSet("splunk") {
-				sendJsonToSplunk(endpointList, splunkAuthString)
+				sendJsonToSplunk(endpointList, c.String("splunk"))
 			}
 			return nil
 		},
