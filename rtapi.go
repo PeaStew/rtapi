@@ -49,6 +49,7 @@ type endpointQuery struct {
 type splunkSettings struct {
 	Url     string `json:"url" yaml:"url"`
 	Authkey string `json:"authkey" yaml:"authkey"`
+	Source  string `json:"source" yaml:"source"`
 }
 
 type splunkEvent struct {
@@ -366,10 +367,11 @@ func sendJsonToSplunk(endpoints []endpointDetails, splunkSettings splunkSettings
 		if err != nil {
 			panic(err)
 		}
-		var splunkMessage = splunkEvent{now.Unix(), name, "rtapi by PeaStew", endpoints[i]}
 
+		var splunkMessage = splunkEvent{now.Unix(), name, splunkSettings.Source, endpoints[i]}
 		jsonInfo, _ := json.Marshal(splunkMessage)
 		var jsonStr = []byte(jsonInfo)
+
 		//log.Print(splunkSettings.Url)
 		//log.Print(splunkSettings.Authkey)
 
