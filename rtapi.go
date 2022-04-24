@@ -85,7 +85,7 @@ func main() {
 			Aliases: []string{"j"},
 			Usage:   "output technical query results as json to terminal",
 		},
-		&cli.BoolFlag{
+		&cli.StringFlag{
 			Name:    "splunk",
 			Aliases: []string{"s"},
 			Usage:   "send json output to splunk with specified authorisation key",
