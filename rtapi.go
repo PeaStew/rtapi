@@ -368,7 +368,7 @@ func sendJsonToSplunk(endpoints []endpointDetails, splunkSettings splunkSettings
 		log.Print(splunkSettings.Url)
 		log.Print(splunkSettings.Authkey)
 
-		req, err := http.NewRequest("POST", splunkSettings.Url, bytes.NewBuffer(jsonStr))
+		req, err := http.NewRequest("GET", splunkSettings.Url, bytes.NewBuffer(jsonStr))
 
 		req.Header.Add("Authorization", splunkSettings.Authkey)
 		req.Header.Set("Content-Type", "application/json")
